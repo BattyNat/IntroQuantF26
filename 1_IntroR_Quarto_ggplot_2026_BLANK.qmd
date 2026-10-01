@@ -270,23 +270,35 @@ Reference: bit.ly/colors-r
 You can change the color in the geom argument. Test out how it works on different geoms!
 
 ```{r}
-ggplot() +  
-  aes(x = ) + 
-  geom_bar(color = '', fill = ) 
+ggplot(penguins) +  
+  aes(x = species) + 
+  geom_bar(color = 'pink', fill = "lightblue") 
+
+view(penguins)
+
+?fill
 ```
 
 If you want the color to reflect another variable, for example, if there is fruit in the candy too, then you make it a **mapped aesthetic**, or one that refers to some data to assign a visual. In this case, you place the **color** or **fill** argument **inside aes().**
 
 ```{r}
-ggplot() +  
-  aes(x = , fill = ) + 
-  geom_bar(position = ) 
+ggplot(penguins) +  
+  aes(x = species, fill = island) + 
+  geom_bar(position = position_dodge())
 ```
 
 ### Challenge question: what proportion of candies have BOTH chocolate and caramel?
 
 ```{r}
+choco_caramel <- candy_rankings |> 
+  filter(chocolate == "TRUE" &
+           caramel == "TRUE")
 
+85/10
+
+ggplot(candy_rankings) +
+  aes(x = chocolate, fill = caramel) +
+  geom_bar()
 ```
 
 ### Shapes
@@ -294,17 +306,18 @@ ggplot() +
 Working on a scatterplot and want the points to be different shapes? Easy too!
 
 ```{r}
-ggplot() +
-  aes(x = ,
-      y = ) +
-  geom_point()
+ggplot(penguins) +
+  aes(x = species,
+      y = bill_length_mm) +
+  geom_point(shape = 5)
 ```
 
 Similarly, you can **map** shape to a variable in the aes() function.
 
 ```{r}
-ggplot() +
-  aes() +
+ggplot(candy_rankings) +
+  aes(x = pricepercent, y = winpercent, shape = chocolate) +
+  geom_point()
   
 ```
 
@@ -313,23 +326,27 @@ ggplot() +
 Pretty self-explanatory here. labs() are added separately from the other plot parameters.
 
 ```{r}
-ggplot() +
-  aes(
-  labs(x = 
-       y =
-       title = ,
-       subtitle = 
-       caption =
+sugar_win <- ggplot(candy_rankings) +
+  aes(x = sugarpercent, y = winpercent) +
+  geom_point() +
+  labs(x = "Sugar Percent",
+       y = "Win Percentage",
+       title = "Relationship between the dependent and independent variable",
+       subtitle = "for Halloween candies",
+       caption ="Based on an online survey by FiveThirtyFive")
 
+sugar_win
 ```
 
 ### X and Y axis limits
 
 ```{r}
-ggplot() +
-  aes(x = , 
-      y = =) +
+ggplot(candy_rankings) +
+  aes(x = sugarpercent, 
+      y = winpercent) +
   geom_point() +
+  xlim(0,1.0)+
+  ylim(0,100)
 
 ```
 
@@ -338,32 +355,36 @@ ggplot() +
 ### Bar plot
 
 ```{r}
-ggplot() +
-  aes(x = ) + 
+ggplot(candy_rankings) +
+  aes(x = chocolate) +
+  geom_bar()
 
 ```
 
 ### Histogram
 
 ```{r}
-ggplot() + 
-  aes(x = ) +
+ggplot(candy_rankings) + 
+  aes(x = winpercent) +
+  geom_histogram()
 
 ```
 
 ### Density Plot
 
 ```{r}
-ggplot() + 
-  aes(x = ) +
+ggplot(candy_rankings) + 
+  aes(x = winpercent) +
+  geom_density()
 
 ```
 
 ### Dot plot
 
 ```{r}
-ggplot() + 
-  aes(x = ) +
+ggplot(candy_rankings) + 
+  aes(x = competitorname, y = sugarpercent) +
+  geom_dotplot()
 
 ```
 
@@ -418,7 +439,7 @@ ggplot() +
 ### Complex Examples
 
 ```{r}
-load(file = )
+load(file = "1_IntroR_Quarto_ggplot_2026.qmd")
 
 VisitorGraph <- ggplot() 
 
