@@ -470,8 +470,9 @@ yosemite_joshua_visitors <- df5 |>
            
   
 yosemite_josh_visitor_graph <- ggplot(yosemite_joshua_visitors) +
-  aes(x = YearRaw, y = Visitors) +
-  geom_point() 
+  aes(x = YearRaw, y = kVis, fill = Name) +
+  geom_point() +
+  geom_line()
 
 yosemite_josh_visitor_graph
 
