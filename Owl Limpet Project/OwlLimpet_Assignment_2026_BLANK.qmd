@@ -156,7 +156,7 @@ No_CDM_Sizes <- SizeData_2022_2025 |>
 Use nrow(), group_by() and count() to tally the limpet observations at each transect. We used the same transect numbers at Shaws and Heisler, so group_by() site as well.
 
 ```{r}
-No_CDM_Sizes <- No_CDM_Sizes |> 
+transect_limpet <- No_CDM_Sizes |> 
   group_by(transect_num, site) |> 
   count() |> 
   mutate(n)
@@ -164,19 +164,28 @@ No_CDM_Sizes <- No_CDM_Sizes |>
 
 
 # How many did we measure total, across both sites?
-total_observed <- sum(No_CDM_Sizes$n)
-total_observed
+sum(transect_limpet$n) #1746
 
-?sum
+
 ## How many did we measure at each site? 
 site_n <- No_CDM_Sizes |> 
-  select(site, n) |> 
-  group_by(site)
+  select(site) |> 
+  group_by(site) |> 
+  count() |> 
+  mutate(n)
 
 
-?select
+#Heisler = 484
+#Shaws Cove =	793
+#Treasure Cove =	469
+
 # How many did we measure in each transect? 
-No_CDM_Sizes |> 
+transect_n <- No_CDM_Sizes |> 
+  select(transect_num) |> 
+  group_by(transect_num) |> 
+  count() |> 
+  mutate(n)
+print(transect_n)
 ```
 
 #### 2.2 What was the limpet density (i.e., limpets per square meter) for each transect?
