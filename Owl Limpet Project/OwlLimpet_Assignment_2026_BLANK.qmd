@@ -68,7 +68,7 @@ We know our minimum size cut-off varied in different years of the surveys, and s
 
 ```{r}
 SizeData_2022_2025 <- SizeData_2022_2025 |> 
-  filter(shell_length_mm > 15)
+  filter(shell_length_mm >= 15)
 
 
 ```
@@ -164,7 +164,7 @@ transect_limpet <- No_CDM_Sizes |>
 
 
 # How many did we measure total, across both sites?
-sum(transect_limpet$n) #1746
+sum(transect_limpet$n) #1767
 
 
 ## How many did we measure at each site? 
@@ -175,8 +175,8 @@ site_n <- No_CDM_Sizes |>
   mutate(n)
 
 
-#Heisler = 484
-#Shaws Cove =	793
+#Heisler = 492
+#Shaws Cove =	806
 #Treasure Cove =	469
 
 # How many did we measure in each transect? 
@@ -194,10 +194,14 @@ Make a new dataframe out of the `No_CDM_Sizes` that has a column called *density
 
 ```{r}
 Limpet_Density <- No_CDM_Sizes |> 
+  select(transect_num, transect_length_m, year, site) |> 
+  group_by(transect_num, transect_length_m, year, site) |> 
+  count() |> 
+  mutate(n) |> 
+  mutate(density = n/(transect_length_m*2))
   
   
 
-Limpet_Density
 ```
 
 Do you see any patterns just from examining this table of values?
