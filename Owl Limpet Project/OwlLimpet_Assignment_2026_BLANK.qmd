@@ -200,7 +200,7 @@ Limpet_Density <- No_CDM_Sizes |>
   mutate(n) |> 
   mutate(density = n/(transect_length_m*2))
   
-  
+print(Limpet_Density)
 
 ```
 
@@ -211,7 +211,13 @@ Do you see any patterns just from examining this table of values?
 What was the mean limpets per square meter across all sites? And the standard deviation? And standard error?
 
 ```{r}
-Limpet_Density |> 
+mean <- mean(Limpet_Density$density) #the mean density across all sites is 3.378
+
+sd <- sd(Limpet_Density$density) #the standard deviation of density is 2.963
+
+#standard error is standard dev / square root of n
+
+sterror <- sd/(sqrt(41)) #the standard error of density is 0.4628961
 
 
 ```
