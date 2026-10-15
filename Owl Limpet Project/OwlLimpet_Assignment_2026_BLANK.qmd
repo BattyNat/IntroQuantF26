@@ -226,10 +226,11 @@ Now create a summary table in which you calculate separate mean and standard dev
 
 ```{r}
 # use summarize() to calculate the mean and standard error (sd/sqrt(n)) for the two locations
-LimpetPopSummary <- Limpet_Density |>
+LimpetPopSummary <- Limpet_Density |> 
   
   
   
+
   
  
 # Display your summary nicely using kable(). 
