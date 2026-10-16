@@ -160,7 +160,7 @@ transect_limpet <- No_CDM_Sizes |>
   group_by(transect_num, site) |> 
   count() |> 
   mutate(n)
-#the observatiosn made across sites grouped by transect number
+#the observations made across sites grouped by transect number
 
 
 # How many did we measure total, across both sites?
@@ -227,10 +227,17 @@ Now create a summary table in which you calculate separate mean and standard dev
 ```{r}
 # use summarize() to calculate the mean and standard error (sd/sqrt(n)) for the two locations
 LimpetPopSummary <- Limpet_Density |> 
+  group_by(site, year) |>  
+  summarize(
+    mean_density = mean(density) |> 
+      sd_density = sd(density)
+  )  
   
   
   
-
+  
+  
+?summarize
   
  
 # Display your summary nicely using kable(). 
