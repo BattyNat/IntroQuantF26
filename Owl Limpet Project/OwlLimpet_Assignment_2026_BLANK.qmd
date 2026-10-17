@@ -211,9 +211,9 @@ Do you see any patterns just from examining this table of values?
 What was the mean limpets per square meter across all sites? And the standard deviation? And standard error?
 
 ```{r}
-mean <- mean(Limpet_Density$density) #the mean density across all sites is 3.378
+mean_dens <- mean(Limpet_Density$density) #the mean density across all sites is 3.378
 
-sd <- sd(Limpet_Density$density) #the standard deviation of density is 2.963
+sd_dens <- sd(Limpet_Density$density) #the standard deviation of density is 2.963
 
 #standard error is standard dev / square root of n
 
@@ -229,15 +229,14 @@ Now create a summary table in which you calculate separate mean and standard dev
 LimpetPopSummary <- Limpet_Density |> 
   group_by(site, year) |>  
   summarize(
-    mean_density = mean(density) |> 
-      sd_density = sd(density)
-  )  
+    mean_density = mean(density, na.rm = TRUE), 
+      sd_density = sd(density, na.rm = TRUE),
+    n = n(),
+    se_density = sd_density / sqrt(n)) |> 
+      mutate_at(vars(mean_density, sd_density, se_density),
+                .funs = round, 2) #rounding to two digits
   
   
-  
-  
-  
-?summarize
   
  
 # Display your summary nicely using kable(). 
@@ -249,9 +248,13 @@ knitr::kable(LimpetPopSummary)
 Boxplot, using the `Limpet_density` object, using fill for year. Label the Y-axis to say "Limpets per square meter".
 
 ```{r}
-Limpet_Density |> ggplot() + 
+dens_boxplot <- ggplot(Limpet_Density) +
+  (aes(x = site, y = density, fill = year)) +
+  xlab(label = "Site") +
+  ylab(label = "Limpets per square meter") +
+  geom_boxplot()
  
-  
+  dens_boxplot
 ```
 
 A column plot with errorbars, and fill = year, using your new `LimpetPopSummary` object. Make sure to label the y-axis appropriately.
