@@ -217,7 +217,7 @@ sd_dens <- sd(Limpet_Density$density) #the standard deviation of density is 2.96
 
 #standard error is standard dev / square root of n
 
-sterror <- sd/(sqrt(41)) #the standard error of density is 0.4628961
+sterror <- sd_dens/(sqrt(41)) #the standard error of density is 0.4628961
 
 
 ```
@@ -260,9 +260,15 @@ dens_boxplot <- ggplot(Limpet_Density) +
 A column plot with errorbars, and fill = year, using your new `LimpetPopSummary` object. Make sure to label the y-axis appropriately.
 
 ```{r}
-LimpetPopSummary |> ggplot()+
+LimpetPopSummary |> ggplot() +
+  aes(x = site, fill = year, y = mean_density) +
+  geom_col(position = "dodge") + #separating stacked colomn for treasure cove years
+  geom_errorbar(aes(ymin = (mean_density - se_density), ymax = (mean_density + se_density)),
+                width = 0.1, position = position_dodge(width = 0.9)) + #separating error bars
+  xlab(label = "Site") +
+  ylab(label = "Mean Limpet Density")
  
-  
+
   
 
 ```
@@ -271,6 +277,8 @@ A `geom_point()` or `geom_jitter()`plot to visualize individual transect density
 
 ```{r}
 Limpet_Density |> ggplot() + 
+  aes(x = transect_num, color = site, y = density) +
+  geom_jitter()
   
   
   
@@ -278,6 +286,10 @@ Limpet_Density |> ggplot() +
 ```
 
 Which plot do you find the most informative and useful and why?
+
+Answer: I found the column plot to be most informative and useful because it had a simple format
+
+that made comprehension more digestible
 
 Based on these plots, does your data meet assumptions for a t-test?
 
@@ -297,6 +309,11 @@ Is it roughly the same so that we can compare? Is it enough to run a statistical
 
 ```{r}
 Limpet_Density |> 
+  select(transect_num, year, site) |> 
+  group_by(transect_num, year, site) |> 
+  count(transect_num)
+
+#the sample size for each transect per site/year is 1 , same sample size
 ```
 
 #### 2.6. Does average number of owl limpets per square meter differ significantly between Heisler Park and Shaws Cove?
@@ -306,9 +323,10 @@ Filter the data to only include those sites before putting it into the `t.test()
 ```{r t-test}
 # run a t-test on your count data from each site (Limpet_Density)
 ShawsHeislerDensity <- Limpet_Density |> 
+  filter(site != "Treasure Cove")
+?t.test
 
-
-t.test(     , data = ShawsHeislerDensity)
+t.test( density ~ site , data = ShawsHeislerDensity)
 
 ```
 
@@ -318,8 +336,13 @@ Explain the results of this t-test. Are you surprised by this result, given the 
 
 ```{r}
 TC_density <- Limpet_Density |>
+  filter(site == "Treasure Cove")
 
-t.test(    )
+t.test( density ~ year, data = TC_density   )
+
+TC_density |> ggplot() +
+  aes(x = year, y = density, fill = year) +
+  geom_boxplot()
 ```
 
 Since there was no difference in means, we'll ignore year at Treasure Cove from now on and just pool our data to make it easier for ourselves.
