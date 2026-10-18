@@ -411,14 +411,16 @@ CDM_TC_Sizes <- SizeData_2022_2025 |>
   filter(site == "Treasure Cove" | site == "Corona del Mar") 
 
 # set the linear model for testing the assumptions
-model <- lm(   )
+model <- lm(shell_length_mm ~ site, data = CDM_TC_Sizes)
 
 # Examine plot of Residuals vs. Fitted values
-plot(model, which = 1)
+plot(model, which = 1) #plot depicts a straight line
 
 # F-test for homogeneity of variance - if p-value < 0.05 then variances are different. 
-var.test(     )
+var.test(shell_length_mm ~ site, data = CDM_TC_Sizes) # variances are different, p-value = 
+#4.5e-09
 
+?var.test
 # NOTE: if your sample fails this test, have no fear! Welch's t-test (the default that R uses) is okay to use with unequal variances. 
 
 ```
@@ -432,7 +434,7 @@ var.test(     )
 plot(model, which = 2)
 
 # conduct a Shapiro-Wilk test on the residuals
-shapiro.test(model$residuals)
+shapiro.test(model$residuals) #distribution of data is different, p-value = 2.938e-07
 ```
 
 Why will we not pay attention to this Shapiro-Wilk test result? Because the sample size is very large and Shapiro-Wilk is overly sensitive (gives false positives) at large sample sizes.
@@ -441,7 +443,7 @@ Why will we not pay attention to this Shapiro-Wilk test result? Because the samp
 
 ```{r t-test or Wilcox}
 # calculate the t-test results
-t.test(      )
+t.test(shell_length_mm ~ site, data = CDM_TC_Sizes) #CDM and Treasure cove mean limpet shell length do differ, p-value = 2.2e-16
 ```
 
 #### [3.3 Graph your results using a column plot with error bars for standard error]{.underline}
@@ -450,6 +452,7 @@ For full credit, have well centered error bars and professionally labeled axes (
 
 ```{r}
 CDM_TC_Sizes |>
+  
   
 
 ```
