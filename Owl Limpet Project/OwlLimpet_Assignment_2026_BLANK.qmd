@@ -509,6 +509,10 @@ load(file = "Data/FenbergTerr.Rdata")
 ```{r}
 ## How many territories were measured at each site in each year? 
 All_Territories |> 
+  group_by(site, year) |> 
+  summarize(
+    n = n()
+  ) #54 in 2024 at Heisler, 83 in 2024 in Shaws, 51 in 2023 at Treasure, and 190 in 2025 at #Treasure
 ```
 
 #### 4.3 Calculate meaningful variables from our measured values
@@ -521,6 +525,8 @@ Create new columns for:
 
 ```{r}
 All_Territories_area_mass <- All_Territories |> 
+  mutate(area_mm2 = numbsquares*(19*19),
+         mass_g = 0.00009*size_mm^3.0471)
   # create a new column for territory area in mm^2 using the "numbsquares" column
          # mesh = 19 mm x 19 mm 
 
@@ -538,13 +544,18 @@ Explore the relationship between mass_g, and area_mm2 using scatter plots.
 # plot size_mm vs area_mm2 scatterplot with best fit regression line, no SE zone, not separated by site
 All_Territories_area_mass |> 
   ggplot() + 
+  aes(x = mass_g, y = area_mm2) +
+  geom_point() +
+  geom_smooth(method = "lm")
   
 ```
 
 ```{r}
 ## Scatter plot with site mapped to color
-All_Territories_area_mass |>
+All_Territories_area_mass |> 
   ggplot() + 
+  aes(x = mass_g, y = area_mm2, color = site) +
+  geom_point() 
  
 ```
 
@@ -552,12 +563,23 @@ All_Territories_area_mass |>
 #  mass_g vs. area_mm2 scatterplot with best fit regression line, no SE zone, faceted by habitat
 All_Territories_area_mass |>
   ggplot() + 
-  
+  aes(x = mass_g, y = area_mm2) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_grid(vars(habitat))
+
 ```
 
 #### 4.5 What observations do you make about these plots? What do you find interesting about them? Explain one observation and make one more plot of your choosing to explore something you found interesting.
 
 ```{r}
+#The open habitat has a wider range of limpet mass, is the range of limpet mass
+#different depending on habitat?
+
+All_Territories_area_mass |> 
+  ggplot()+
+  aes(x = habitat, y = mass_g, fill = habitat) +
+  geom_boxplot()
 
 ```
 
@@ -567,7 +589,7 @@ All_Territories_area_mass |>
 
 # write a linear model for the relationship, then use the plot() function on the model object to show the residuals vs. fitted values and QQ plots to assess your regression. 
 
-linear_model <- lm(     )
+linear_model <- lm( mass_g ~ area_mm2, data = All_Territories_area_mass    )
 
 plot(linear_model)
 ```
@@ -580,12 +602,15 @@ One way to transform data that has this shape is to apply a log-transformation. 
 # plot a scatterplot log area on y axis by log mass_g on x axis, best fit regression line but no SE interval
 
 All_Territories_area_mass |> ggplot() + 
+  aes(x = mass_g, y = area_mm2) +
+  geom_point() +
+  geom_smooth(method = "lm")
 
 ```
 
 ```{r}
 # write the linear model object and examine the residual and QQ plots
-log_model <- lm(     )
+log_model <- lm(  mass_g ~ area_mm2, data = All_Territories_area_mass   )
   
 plot(log_model, which = 1)
 plot(log_model, which = 2)
@@ -595,8 +620,8 @@ plot(log_model, which = 2)
 
 ```{r linear regression test summary}
 
-
-
+summary(log_model)
+#y = 5.81e-05x + 7.121
 ```
 
 **The formula for the best fit line can be extracted from the model summary. The two values in the Estimate column are the coefficients - (Intercept) gives the y-intercept, and the variable gives the slope.**
@@ -614,12 +639,16 @@ FenbergTerr
 
 # Plot the Fenberg data with the log transformations
 FenbergTerr |> ggplot() +
+  aes(x = mass_g, y = area_mm2) +
+  geom_point() +
+  geom_smooth(method = "lm")
  
 
 # Find the slope and intercept of the best fit line
-Fenberg_model <- lm(   )
+Fenberg_model <- lm(mass_g ~ area_mm2, data = FenbergTerr) 
+summary(Fenberg_model)
 
-
+#y = 4.292e-04x + 0.8327
 ```
 
 Explain your findings!
