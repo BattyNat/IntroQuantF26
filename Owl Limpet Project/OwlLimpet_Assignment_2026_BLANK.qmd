@@ -451,7 +451,24 @@ t.test(shell_length_mm ~ site, data = CDM_TC_Sizes) #CDM and Treasure cove mean 
 For full credit, have well centered error bars and professionally labeled axes (they should not say "mean", they should say the variable name).
 
 ```{r}
-CDM_TC_Sizes |>
+CDM_TC_Sizes |> 
+  group_by(site) |> 
+    summarize(
+      mean_shell_length = mean(shell_length_mm, na.rm = TRUE), 
+      sd_shell_length = sd(shell_length_mm, na.rm = TRUE),
+      n = n(),
+      se_shell_length = sd_shell_length / sqrt(n)) |> 
+    mutate_at(vars(mean_shell_length, sd_shell_length, se_shell_length),
+              .funs = round, 2) |> 
+  ggplot() +
+  aes(x = site, y = mean_shell_length, fill = site) +
+  geom_col(position = "dodge") +
+  geom_errorbar(aes(ymin = (mean_shell_length - se_shell_length), ymax = (mean_shell_length + se_shell_length)),
+                width = 0.1, position = position_dodge(width = 0.9)) + #separating error bars
+  xlab(label = "Site") +
+  ylab(label = "Mean Limpet Shell Length (mm)") +
+  theme_light()
+
   
   
 
