@@ -645,7 +645,7 @@ summary(Fenberg_model)
 #y = 0.892x + 7.910
 ```
 
-Explain your findings!
+Explain your findings! how does recent figure differ from previous graph/model?
 
 ### Part 5: EXTRA CREDIT:
 
