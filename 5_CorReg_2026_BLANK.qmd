@@ -315,7 +315,10 @@ pg
 #### Step 2: Visualize the data
 
 ```{r}
-ggplot()
+ggplot(pg) +
+  aes(x = nutrient, y = growth) +
+  geom_point()+
+  geom_smooth(method = "lm") #line does not fit risiduals very well
 ```
 
 Not so linear!
@@ -325,7 +328,10 @@ Not so linear!
 Does our line look better if we transform our independent variable?
 
 ```{r}
-ggplot()
+ggplot(pg) +
+  aes(log(nutrient), growth) + #transformation makes it look better
+  geom_point() +
+  geom_smooth(method = "lm")
 
 ggplot()
 ```
@@ -333,8 +339,9 @@ ggplot()
 To fit a linear model, you just plug in the log-transformed variable into the same linear model function that we used before.
 
 ```{r}
-pg.lm_bad <- lm()
+pg.lm_bad <- lm(nutrient ~ growth, data = pg)
 
+summary(pg.lm_bad)
 
 pg.lm <- lm()
 ```
@@ -352,10 +359,14 @@ a = analogous to slope c = intercept
 #### Step 8: Communicate results with a plot and writing.
 
 ```{r}
-pg_plot <- ggplot()
+pg_plot <- ggplot(pg) +
+  aes(x = nutrient, y = growth) +
+  geom_point()
 
-pg_plot_plusline <-  +
-  geom_smooth(
+pg_plot_plusline <-  pg_plot +
+  geom_smooth(method = "lm",
+              se = FALSE, 
+              formula = y ~ x
   )
 
 
