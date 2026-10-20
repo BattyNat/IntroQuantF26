@@ -223,11 +223,11 @@ Now create a summary table in which you calculate separate mean and standard dev
 LimpetPopSummary <- Limpet_Density |> 
   group_by(site, year) |>  
   summarize(
-    mean_density = mean(density, na.rm = TRUE), 
+    mean_density = mean(density, na.rm = TRUE), #mean density
       sd_density = sd(density, na.rm = TRUE),
     n = n(),
     se_density = sd_density / sqrt(n)) |> 
-      mutate_at(vars(mean_density, sd_density, se_density),
+      mutate_at(vars(mean_density, sd_density, se_density), #make new cols
                 .funs = round, 2) #rounding to two digits
   
   
@@ -538,7 +538,7 @@ Explore the relationship between mass_g, and area_mm2 using scatter plots.
 # plot size_mm vs area_mm2 scatterplot with best fit regression line, no SE zone, not separated by site
 All_Territories_area_mass |> 
   ggplot() + 
-  aes(x = mass_g, y = area_mm2) +
+  aes(x = size_mm, y = area_mm2) +
   geom_point() +
   geom_smooth(method = "lm")
   
@@ -548,7 +548,7 @@ All_Territories_area_mass |>
 ## Scatter plot with site mapped to color
 All_Territories_area_mass |> 
   ggplot() + 
-  aes(x = mass_g, y = area_mm2, color = site) +
+  aes(x = size_mm, y = area_mm2, color = site) +
   geom_point() 
  
 ```
@@ -583,9 +583,10 @@ All_Territories_area_mass |>
 
 # write a linear model for the relationship, then use the plot() function on the model object to show the residuals vs. fitted values and QQ plots to assess your regression. 
 
-linear_model <- lm( mass_g ~ area_mm2, data = All_Territories_area_mass    )
+linear_model <- lm(area_mm2 ~ mass_g, data = All_Territories_area_mass) #area is #explained by mass
 
-plot(linear_model)
+plot(linear_model) #residuals are not well explained by lm and are nonhomogenious,
+#
 ```
 
 One way to transform data that has this shape is to apply a log-transformation. Logarithmic relationships are common in biology for mass, volume, or other spatial relationships.
@@ -596,18 +597,17 @@ One way to transform data that has this shape is to apply a log-transformation. 
 # plot a scatterplot log area on y axis by log mass_g on x axis, best fit regression line but no SE interval
 
 All_Territories_area_mass |> ggplot() + 
-  aes(log(mass_g), area_mm2) +
+  aes(log(mass_g), log(area_mm2)) + #log transformation for both mass and area
   geom_point() +
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm", se = FALSE)
 
 ```
 
 ```{r}
 # write the linear model object and examine the residual and QQ plots
-log_model <- lm(  mass_g ~ area_mm2, data = All_Territories_area_mass   )
+log_model <- lm(log(area_mm2) ~ log(mass_g), data = All_Territories_area_mass) #residuals look more evenly distributed
   
-plot(log_model, which = 1)
-plot(log_model, which = 2)
+plot(log_model)
 ```
 
 #### 4.8. What is the formula for the best fit line for the relationship between territory size and body mass in owl limpets?
@@ -615,7 +615,7 @@ plot(log_model, which = 2)
 ```{r linear regression test summary}
 
 summary(log_model)
-#y = 5.81e-05x + 7.121
+#y = 0.8903x + 8.2116
 ```
 
 **The formula for the best fit line can be extracted from the model summary. The two values in the Estimate column are the coefficients - (Intercept) gives the y-intercept, and the variable gives the slope.**
@@ -633,16 +633,16 @@ FenbergTerr
 
 # Plot the Fenberg data with the log transformations
 FenbergTerr |> ggplot() +
-  aes(x = mass_g, y = area_mm2) +
+  aes(log(mass_g), log(area_mm2)) +
   geom_point() +
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm", se = FALSE)
  
 
 # Find the slope and intercept of the best fit line
-Fenberg_model <- lm(mass_g ~ area_mm2, data = FenbergTerr) 
+Fenberg_model <- lm(log(area_mm2) ~ log(mass_g), data = FenbergTerr) 
 summary(Fenberg_model)
 
-#y = 4.292e-04x + 0.8327
+#y = 0.892x + 7.910
 ```
 
 Explain your findings!
