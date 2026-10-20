@@ -28,7 +28,7 @@ You have been given data from several locations and survey years:
 - 2025: Treasure Cove (TC) - size data in 5-m transects, territories
 
 ```{r}
-load(file = "Data/SizeData_2022_2025.Rdata")
+load(file = "Data/SizeData_2022_2025.Rdata") #load in data
 
 SizeData_2022_2025
 ```
@@ -65,7 +65,8 @@ We know our minimum size cut-off varied in different years of the surveys, and s
 
 ```{r}
 SizeData_2022_2025 <- SizeData_2022_2025 |> 
-  filter(shell_length_mm >= 15)
+  filter(shell_length_mm >= 15) #filtering for only shell length with greater than
+#or equal to 15 mm
 
 
 ```
@@ -76,14 +77,10 @@ Make a table using `select()` and `distinct()` to only show the length of each t
 
 ```{r}
 TransectLengths <- SizeData_2022_2025 |> 
-  select(site, transect_length_m) |> 
-  distinct() |> 
-  filter(site != "Corona del Mar")
+  select(site, transect_length_m) |> #select site and transect length cols
+  distinct() |> #make cols unique by site and transect length
+  filter(site != "Corona del Mar") #filter out corona del mar observations
   
-  
-?select
-
-
 ```
 
 Visualize the transect lengths two different ways.
@@ -96,7 +93,7 @@ Visualize the transect lengths two different ways.
 
 ```{r}
 TransectLengths |> ggplot(
-  aes(y = transect_length_m, x = site)) +
+  aes(y = transect_length_m, x = site)) + #plot transect length per site
   ylab(label = "Transect Length (mm)") +
   geom_boxplot() +
   geom_point(color = "red")
@@ -115,11 +112,11 @@ Graph 1:
 
 ```{r}
 SizeData_2022_2025 |> ggplot(
-  aes(y = shell_length_mm, x = habitat)) +
+  aes(y = shell_length_mm, x = habitat)) + #visualizes shell length (mm) across #different habitat types
   ylab(label = "Transect Length (mm)") +
   geom_boxplot()
 
-#this graph visualizes shell length (mm) across different habitat types
+
 
 ?geom_boxplot
 ```
@@ -130,10 +127,10 @@ Graph 2:
 
 ```{r}
 treasure_cove <- SizeData_2022_2025 |> 
-  filter(site == "Treasure Cove")
+  filter(site == "Treasure Cove") #isolate treasure cove
 
 ggplot(treasure_cove) + 
-  aes(x = year, y = shell_length_mm) + 
+  aes(x = year, y = shell_length_mm) + #does treasure cove shell length differ bw #year?
   geom_boxplot()
 ```
 
@@ -145,7 +142,7 @@ For the population density analysis, we will analyze data from Shaws Cove, Heisl
 
 ```{r}
 No_CDM_Sizes <- SizeData_2022_2025 |> 
-  filter(site != "Corona del Mar")
+  filter(site != "Corona del Mar") #get rid of corona del mar sites
 ```
 
 #### 2.1. How many limpets did we measure at each site in each year for sizes?
