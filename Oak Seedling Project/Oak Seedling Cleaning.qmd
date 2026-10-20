@@ -1,0 +1,21 @@
+---
+title: "Oak Seedlings"
+format: html
+editor: visual
+---
+
+## Oak Seedlings Project
+
+```{r}
+library(tidyverse)
+
+library(googlesheets4)
+
+Height_Data_Raw <- read_sheet("https://docs.google.com/spreadsheets/d/19MYOMFHIG1VxHvqBHCDd6DUvH_IJGpFXzwnos60RWtY/edit?gid=472361920#gid=472361920", sheet = "Seedling Heights")
+
+LICOR_Data_Raw <- read_sheet("https://docs.google.com/spreadsheets/d/19MYOMFHIG1VxHvqBHCDd6DUvH_IJGpFXzwnos60RWtY/edit?gid=472361920#gid=472361920", sheet = "LICOR")
+
+Moist_Data_Raw <- read_sheet("https://docs.google.com/spreadsheets/d/19MYOMFHIG1VxHvqBHCDd6DUvH_IJGpFXzwnos60RWtY/edit?gid=472361920#gid=472361920", sheet = "Soil Moisture")
+
+SPAD_Data_Raw <- read_sheet("https://docs.google.com/spreadsheets/d/19MYOMFHIG1VxHvqBHCDd6DUvH_IJGpFXzwnos60RWtY/edit?gid=472361920#gid=472361920", sheet = "SPAD")
+```
