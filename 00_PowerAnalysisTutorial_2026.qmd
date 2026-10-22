@@ -96,14 +96,15 @@ diff_large <- tibble(names, large)
 diff_small <- tibble(names, small)
 
 large <- ggplot(diff_large, aes(names,large)) + geom_boxplot() + labs(title = "large effect size", x = "", y = "")
-small <- ggplot(diff_small, aes(names,small)) + geom_boxplot() + labs(title = "small effect size", x = "", y = "")
+small <- ggplot(diff_small, aes(names,small)) + geom_boxplot() + labs(title = "small effect size", x = "", y = "") #small dif in means
 
 tight <- tibble(sort(var1), sort(var3))
 
 loose <- ggplot(tight, aes(var1,var3)) + geom_point() + geom_smooth(method = "lm") + labs(x = "", y = "")
 tightlm <- ggplot(tight, aes(`sort(var1)`,`sort(var3)`)) + geom_point() + geom_smooth(method = "lm") + labs(x = "", y = "")
 
-library(patchwork)
+install.packages("patchwork")
+library(patchwork) #can arrange so all show up at same time like facet
 
 (small | large) / (loose | tightlm)
 ```
@@ -158,6 +159,9 @@ location_n_TC <- All_Size_Data |>
   count() |>
   janitor::adorn_totals("row")
   
+
+install.packages("janitor")
+library(janitor)
 knitr::kable(location_n_TC)
 ```
 
@@ -179,13 +183,13 @@ pwr.t.test(
   power = 0.80,
   type = "two.sample"
 )
-
+#cuold have only samped 25 limpets at a site to get same effect site
 ```
 
 Could we really have measured only 25 limpets at each site and still detected an effect?
 
 ```{r}
-# This code chooses 25 random observations from each site and creates a subsample data frame
+# This code chooses 25 random observations from each site and creates a subsample data frame, bootstrapping
 Subsample <- All_Size_Data |>
   group_by(site) |>
   sample_n(25)
@@ -231,7 +235,7 @@ temp2 <- temp |>
   aes(x = sig, y = n) + 
   geom_col()
 
-temp2
+temp2 #we fail to see signficance 2% of the time, NS - 21/1000 times
 ```
 
 Is a smaller sample more likely to pass the normality test? Does this change how we think about tests of normality for data sets with large sample sizes?
@@ -241,13 +245,13 @@ full_model <- lm(shell_length_mm ~ site, All_Size_Data)
 
 plot(full_model, which = 2)
 
-shapiro.test(full_model$residuals)
+shapiro.test(full_model$residuals) #says not normal but looks normal, high sample #size is causing false positive
 
 
 
 subsample_model <- lm(shell_length_mm ~ site, Subsample)
 
-plot(subsample_model, which = 2)
+plot(subsample_model, which = 2) #good enough
 
 shapiro.test(subsample_model$residuals)
 ```
@@ -267,7 +271,7 @@ In what kind of test might higher power be really important? Consider the follow
   - Fun Fact! OTC COVID-19 rapid antigen tests have a sensitivity of about 0.65 in symptomatic individuals and about 0.44 in asymptomatic individuals (Jegerlehner et al. 2021, *Int.J.Inf.Dis.*). This is why most OTC test kits recommend taking two tests within 24 hours; the probability of getting a false negative twice in a row is much lower!
 
 ```{r}
-(1 - 0.65)^2
+(1 - 0.65)^2 #odds are now 0.1225 in having a false neg two times a row
 ```
 
 - You are an EPA scientist tasked with determining whether a new fertilizer should be approved for use in agriculture near rivers; anecdotal evidence suggests that it may have detrimental impacts on river invertebrate communities. You are given unreplicated data from 8 rivers; four where the fertilizer is used, four where it is not. Assuming that a moderate effect size (0.5) would be important and α = 0.05, how confident would you be approving or rejecting the fertilizer for use based on the river data?
@@ -281,7 +285,7 @@ Power_Fert <- pwr.t.test(
   type = "two.sample"
 )
 
-Power_Fert$power
+Power_Fert$power #oods that you are correcty is 1.2%
 ```
 
 Not very confident! With that low sample size, if you decide that there is no difference (i.e., that it is safe to use the fertilizer) the odds that you are correct is less than 10%. The right thing to do here would be to delay a decision until you have gathered more data on the safety of this fertilizer.
@@ -346,8 +350,8 @@ What was the **power** of our full-scale owl limpet study for the difference bet
 
 ```{r}
 pwr.t.test(
-  n = nrow(All_Size_Data),
-  d = 0.9599906,
+  n = 1,
+  d = 187,
   sig.level = 0.05,
   power = NULL,
   type = "two.sample"
@@ -411,7 +415,7 @@ What was the minimum sample size needed to detect the difference between TC near
 
 ```{r}
 t.test(shell_length_mm ~ location, data = TC_Data2023)
-d_tc <- abs(43.92547 - 42.29670)/sd(TC_Data2023$shell_length_mm)
+d_tc <- abs(43.92547 - 42.29670)/sd(TC_Data2023$shell_length_mm) #effect size rlly #small
 
 pwr.t.test(
   n = NULL,
@@ -419,7 +423,7 @@ pwr.t.test(
   sig.level = 0.05,
   power = 0.8,
   type = "two.sample"
-)
+) #detect 620 limpets to get that difference, dif not ecolog important
 
 
 ```
