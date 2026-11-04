@@ -149,8 +149,8 @@ You may be either examining `SPAD_Data_Raw`, `Height_Data_Raw`, `LICOR_Data_Raw`
 
 ```{r}
 licor_wanted <- LICOR_Data_Raw |> 
-  select(SYS_Date_YYYYMMDD, `PORO_E_apparent_mmol+1m-2s-1`, Treatment_NA_NA)  #selecting for #date, transpiration, and treatment colomns
-
+  select(SYS_Date_YYYYMMDD, `PORO_E_apparent_mmol+1m-2s-1`, Treatment_NA_NA, `USERDEF_Block Number_NA`, `USERDEF_Tag Number_NA`) #selecting for #date, transpiration, and treatment #colomns
+  
 ```
 
 In this next chunk, generate a cleaned data set following the example below. As you examine your raw data and find things to fix, add a #Note to create a list of things to fix up. You can then use pipes and write code to fix each thing in your checklist. This is also where if you identified `filters` or data computations in your Hypothesis worksheet (e.g., choose only one species), you can apply those.
@@ -163,24 +163,38 @@ Check out the illustrative animations on this page: <https://github.com/gadenbui
 
 ```{r}
 
-levels(as.factor(licor_wanted$Treatment_NA_NA)) #null value, want to see each name
+glimpse(licor_wanted) #all variables are characters
 
+levels(licor_wanted$Treatment_NA_NA) #null value, want to see each level of treatment
+
+
+#fixing levels = null values bc treatment is character, not a factor
+licor_wanted <- licor_wanted |>  
+  mutate(treatment = (as.factor(Treatment_NA_NA))) |> #switching to factor from character to #see levels
+  select(treatment, SYS_Date_YYYYMMDD, `PORO_E_apparent_mmol+1m-2s-1`, `USERDEF_Block Number_NA`, `USERDEF_Tag Number_NA`) |> #remove old date #colomn
+  rename(date = SYS_Date_YYYYMMDD, transpiration = `PORO_E_apparent_mmol+1m-2s-1`, Block = `USERDEF_Block Number_NA`, tag_number = `USERDEF_Tag Number_NA`) #rename #colomns to simpler #names
+ 
+
+#changing transpiration colomn to numeric
+licor_wanted$transpiration <- as.numeric(licor_wanted$transpiration)
+
+licor_wanted <- licor_wanted |> 
+group_by(tag_number) |> 
+  mutate(mean_transp = mean(transpiration)) |>  #mean transpiration colomn added to df
+  select(!transpiration) |> 
+  unique() |> 
+  drop_na()
+
+
+levels(licor_wanted$treatment) #levels are ??, AC, DT, NR, OS
+
+
+#Removing unnecessary data
 licor_wanted |> 
-  mutate(Treatment_NA_NA = as.factor())#switching to factor from character to see levels
+  filter(treatment != "??") #removing ?? data 
 
-#levels are ??, AC, DT, NR, OS
 
-licor_wanted |> 
-  filter(Treatment_NA_NA != "??") #removing ?? data 
 
-typeof(licor_wanted$Treatment_NA_NA)
-
-  
-  # use notes like this to create a checklist of the things that need to be fixed, then you can fill in code between each line as you fix them. 
-
-  # Thing to fix #2
-
-  # Thing to fix #3
 ```
 
 ### Regression dataset
@@ -189,12 +203,53 @@ Repeat the steps you took for your ANOVA data for your second data set of choice
 
 ```{r}
 # View data set
+view(Moist_Data_Raw)
+view(licor_wanted)
+
 ```
 
 ```{r}
-Data <- _Raw |> 
-   
-  #Things to Fix
+
+#selecting for colomns with volumetric water content and date
+moist_wanted <- Moist_Data_Raw |>
+  select(VWC1_perc, VWC2_perc, VWC3_perc, Treatment, Date, Block)
+
+levels(moist_wanted$Treatment) #null values
+
+#changing character variable trtment as factor to see levels of trtment
+moist_wanted <- moist_wanted |> 
+  mutate(treatment = (as.factor(Treatment))) |> 
+  select(treatment, Date, VWC1_perc, VWC2_perc, VWC3_perc, Block) |> #removing old treatment #colomn
+  rename(date = Date) #rename date to match with licor table
+
+levels(moist_wanted$treatment) #4 levels, AC, DT, NR, OS
+
+moist_transp_table <- full_join(moist_wanted, licor_wanted) #x date is datetimeUTC and y date #is character
+
+#fixing y table date character variable, changing to datetime UTC
+licor_wanted$date <-  
+  as.Date(licor_wanted$date, format = "%Y-%m-%d", tz = "UTC")
+
+moist_transp_table <- full_join(moist_wanted, licor_wanted) #running code again
+
+
+#removing "NA" values  
+moist_transp_table <- moist_transp_table |>  
+  filter(VWC2_perc != "NA", VWC3_perc != "NA")  
+
+
+#dropping rest of NAs, should now only have complete soil moisture data and transpiration data
+moist_transp_table <- moist_transp_table |>  
+  drop_na()
+
+#creating colomn with mean soil moisture
+moist_transp_table <- moist_transp_table |> 
+  mutate(across(c(VWC1_perc, VWC2_perc, VWC3_perc), as.numeric)) |> #converting chrtr to #numeric in order to add and get mean
+  mutate(mean_moist = (rowSums(across(c(VWC1_perc, VWC2_perc, VWC3_perc))))/3) |> #calc mean
+  select(treatment, date, Block, mean_moist, tag_number, mean_transp) 
+
+
+
 ```
 
 ## Exploratory Data Analysis
@@ -214,5 +269,24 @@ Not sure where to start?
 Go for it!
 
 ```{r}
+#plotting mean soil moisture against treatment
+moist_treatment <- ggplot(moist_transp_table) +
+  aes(x = treatment, y = mean_moist) + 
+  geom_boxplot()
+moist_treatment #it looks like mean soil moisture is lower in Open Space habitat compared to #Dead Tree habitat
+```
 
+```{r}
+#plotting transpiration against soil moisture
+transp_moist_graph <- ggplot(moist_transp_table) + 
+  aes(x = treatment, y = mean_transp) + 
+  geom_boxplot()
+transp_moist_graph #It looks like mean transpiration does not significantly differ among #different microhabitats
+```
+
+```{r}
+rain_moist <- ggplot(licor_wanted) + 
+  aes(x = date, y = mean_transp, group = date) + 
+  geom_boxplot()
+rain_moist #it looked like the rain event did not change transpiration
 ```
