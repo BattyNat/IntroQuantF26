@@ -1,0 +1,184 @@
+---
+title: "oak_analysis"
+author: "Natalie Bonning"
+format: html
+editor: visual
+---
+
+# Report Summary
+
+**How does microhabitat and rain affect the transpiration of coast live oak seedlings?**
+
+[Alternative hypothesis]{.underline}: The mean transpiration of oak seedlings among different microhabitats or before and after a rain event does differ and there is an interaction between microhabitat and occurrence of rain.
+
+[Null hypothesis]{.underline}:  The mean transpiration of oak seedlings among different microhabitats or before and after a rain event does not differ and there is no interaction between microhabitat and occurrence of rain.
+
+Transpiration \~ microhabitat \* rain
+
+## Loading Packages
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+## Importing Data
+
+You can add options to executable code like this
+
+```{r}
+Height_Data_Raw <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "Seedling Heights")
+
+Moist_Data_Raw <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "Soil Moisture")
+
+SPAD_Data_Raw <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "SPAD", 
+             na = "NA")
+
+licor_wrong <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx",
+             sheet = "LICOR")
+
+licor_wrong <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx",
+             sheet = "ALL_Licor_Ignore")
+```
+
+## Importing LICOR objects
+
+```{r}
+LICOR_Data_Raw_NAMES <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx",              
+             sheet = "LICOR", 
+             n_max = 3, 
+             col_names = FALSE, 
+             col_types = "text") |> 
+  summarise(across(.fns = paste, collapse = "_")) |> #if we have two cells, put in #same name paste
+  unlist() |> 
+  unname()
+
+LICOR_Data_Raw <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx",  
+             sheet = "LICOR", 
+             skip = 3, 
+             col_names = LICOR_Data_Raw_NAMES,
+             col_types = "text")
+
+
+ALL_Licor_NAMES <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "ALL_Licor_Ignore", 
+             n_max = 3, 
+             col_names = FALSE, 
+             col_types = "text") |> 
+  summarise(across(.fns = paste, collapse = "_")) |> 
+  unlist() |> 
+  unname()
+
+ALL_Licor <- 
+  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+             sheet = "ALL_Licor_Ignore", 
+             skip = 3, 
+             col_names = ALL_Licor_NAMES, 
+             col_types = "text")
+
+LICOR_Data_Raw <- full_join(LICOR_Data_Raw, ALL_Licor)
+```
+
+## Data Cleaning
+
+```{r}
+licor_wanted <- LICOR_Data_Raw |> 
+  select(SYS_Date_YYYYMMDD, `PORO_E_apparent_mmol+1m-2s-1`, Treatment_NA_NA, `USERDEF_Block Number_NA`, `USERDEF_Tag Number_NA`) #selecting for #date, transpiration, and treatment #colomns
+
+glimpse(licor_wanted) #all variables are characters
+
+levels(licor_wanted$Treatment_NA_NA) #null value, want to see each level of treatment
+
+
+#fixing levels = null values bc treatment is character, not a factor
+licor_wanted_clean <- licor_wanted |>  
+  mutate(treatment = (as.factor(Treatment_NA_NA))) |> #switching to factor from character to #see levels
+  select(treatment, SYS_Date_YYYYMMDD, `PORO_E_apparent_mmol+1m-2s-1`, `USERDEF_Block Number_NA`, `USERDEF_Tag Number_NA`) |> #remove old date #colomn
+  rename(date = SYS_Date_YYYYMMDD, transpiration = `PORO_E_apparent_mmol+1m-2s-1`, Block = `USERDEF_Block Number_NA`, tag_number = `USERDEF_Tag Number_NA`) #rename #colomns to simpler #names
+
+
+#changing transpiration colomn to numeric
+licor_wanted_clean$transpiration <- as.numeric(licor_wanted_clean$transpiration)
+
+licor_wanted_clean <- licor_wanted_clean |> 
+  group_by(tag_number) |> 
+  mutate(mean_transp = mean(transpiration)) |>  #mean transpiration colomn added to df
+  select(!transpiration) |> 
+  unique() |> 
+  drop_na() #removing na rows
+
+
+levels(licor_wanted_clean$treatment) #levels are ??, AC, DT, NR, OS
+
+
+#Removing unnecessary data
+licor_wanted_clean |> 
+  filter(treatment != "??") #removing ?? data 
+```
+
+```{r}
+#selecting for colomns with volumetric water content and date
+moist_wanted <- Moist_Data_Raw |>
+  select(VWC1_perc, VWC2_perc, VWC3_perc, Treatment, Date, Block)
+
+levels(moist_wanted$Treatment) #null values
+
+#changing character variable trtment as factor to see levels of trtment
+moist_wanted <- moist_wanted |> 
+  mutate(treatment = (as.factor(Treatment))) |> 
+  select(treatment, Date, VWC1_perc, VWC2_perc, VWC3_perc, Block) |> #removing old treatment #colomn
+  rename(date = Date) #rename date to match with licor table
+
+levels(moist_wanted$treatment) #4 levels, AC, DT, NR, OS
+
+moist_transp_table <- full_join(moist_wanted, licor_wanted_clean) #x date is datetimeUTC and y date #is character
+
+#fixing y table date character variable, changing to datetime UTC
+licor_wanted_clean$date <-  
+  as.Date(licor_wanted_clean$date, format = "%Y-%m-%d", tz = "UTC")
+
+moist_transp_table <- full_join(moist_wanted, licor_wanted_clean) #running code again
+
+
+#removing "NA" values  
+moist_transp_table <- moist_transp_table |>  
+  filter(VWC2_perc != "NA", VWC3_perc != "NA")  
+
+
+#dropping rest of NAs, should now only have complete soil moisture data and transpiration data
+moist_transp_table <- moist_transp_table |>  
+  drop_na()
+
+#creating colomn with mean soil moisture
+moist_transp_table <- moist_transp_table |> 
+  mutate(across(c(VWC1_perc, VWC2_perc, VWC3_perc), as.numeric)) |> #converting chrtr to #numeric in order to add and get mean
+  mutate(mean_moist = (rowSums(across(c(VWC1_perc, VWC2_perc, VWC3_perc))))/3) |> #calc mean
+  select(treatment, date, Block, mean_moist, tag_number, mean_transp) 
+
+```
+
+## ANOVA Analysis
+
+Conducting a two-way anova
+
+```{r}
+aov_model <- lm(log(mean_transp) ~ treatment, data = licor_wanted_clean)
+
+plot(aov_model, which = 2) #need to log model
+
+anova(aov_model)
+
+```
