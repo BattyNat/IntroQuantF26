@@ -7,13 +7,25 @@ editor: visual
 
 # Report Summary
 
-**How does microhabitat and rain affect the transpiration of coast live oak seedlings?**
+**Q.1 How does microhabitat affect the transpiration of coast live oak seedlings?**
 
-[Alternative hypothesis]{.underline}: The mean transpiration of oak seedlings among different microhabitats or before and after a rain event does differ and there is an interaction between microhabitat and occurrence of rain.
+[**Alternative hypothesis**]{.underline}: The mean transpiration of oak seedlings among different microhabitats does differ.
 
-[Null hypothesis]{.underline}:  The mean transpiration of oak seedlings among different microhabitats or before and after a rain event does not differ and there is no interaction between microhabitat and occurrence of rain.
+[**Null hypothesis**]{.underline}:  The mean transpiration of oak seedlings among different microhabitats does not differ.
 
-Transpiration \~ microhabitat \* rain
+**Model** = Transpiration \~ microhabitat
+
+**Results**: The mean transpiration of oak seedlings among different microhabitats does not differ, p = 0.1389, df = 2.
+
+**Q.2 Is there a significant relationship between soil moisture and coast live oak seedling transpiration?**
+
+[**Alternative hypothesis**]{.underline}: There is a significant relationship between soil moisture and coast live oak seedling transpiration
+
+[**Null hypothesis**]{.underline}: There is no significant relationship between soil moisture and coast live oak seedling transpiration.
+
+**Model** = Transpiration \~ soil moisture
+
+**Results**: Mean soil moisture failed to predict mean transpiration rate, only explaining 0.087% of the variance (R\^2 = 0.00087) F(1,25) = 0.0218, p-value = 0.8839.
 
 ## Loading Packages
 
@@ -214,12 +226,38 @@ anova(aov_model)
 ```{r}
 ggplot(licor_wanted_clean) + 
   aes(x = treatment, y = log(mean_transp), fill = treatment) + 
-  geom_boxplot() 
+  xlab(label = "Treatment") + 
+  ylab(label = "Mean Transpiration") + 
+  geom_boxplot() +
+  geom_jitter()
+
 ```
 
+## Reporting ANOVA results
+
+The mean transpiration of coast live oaks does not differ between microhabitat, p = 0.1389, df = 2.
+
 # Regression
+
+## Running a linear model
 
 ```{r}
 transp.lm <- lm(mean_transp ~ mean_moist, data = moist_transp_table)
 transp.lm 
+summary(transp.lm) #R-squared very low, moisture does not explain transpiration
 ```
+
+## Graphing results
+
+```{r}
+ggplot(moist_transp_table) + 
+  aes(mean_moist, mean_transp) + 
+  xlab(label = "Mean Moisture") + 
+  ylab(label = "Mean Transpiration") + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE, linetype = "dashed")
+```
+
+## Reporting results
+
+Mean soil moisture failed to predict mean transpiration rate, only explaining 0.087% of the variance (R\^2 = 0.00087) F(1,25) = 0.0218, p-value = 0.8839.
