@@ -125,8 +125,9 @@ levels(licor_wanted_clean$treatment) #levels are ??, AC, DT, NR, OS
 
 
 #Removing unnecessary data
-licor_wanted_clean |> 
-  filter(treatment != "??") #removing ?? data 
+licor_wanted_clean <- licor_wanted_clean |> 
+  filter(treatment != "??", treatment != "NR") #removing ?? data 
+
 ```
 
 ```{r}
@@ -170,15 +171,55 @@ moist_transp_table <- moist_transp_table |>
 
 ```
 
-## ANOVA Analysis
+# One-Way ANOVA
 
-Conducting a two-way anova
+## Creating a model
 
 ```{r}
 aov_model <- lm(log(mean_transp) ~ treatment, data = licor_wanted_clean)
 
 plot(aov_model, which = 2) #need to log model
+```
+
+## Normal Distribution Test
+
+Shapiro-wilk test
+
+```{r}
+shapiro.test(aov_model$residuals) #when not logged, p-value = 0.0005
+#must log in order to have normal distribution, when logged p-value = 0.5
+```
+
+## Equal Variance test
+
+Bartlett test
+
+```{r}
+bartlett.test(log(mean_transp) ~ treatment, data =licor_wanted_clean) #variance is equal among #all treatments, p-value = 0.4677
+
+```
+
+## Analysis
+
+Conducting a one way anova
+
+```{r}
 
 anova(aov_model)
+#the mean transpiration of coast live oaks does not differ between microhabitats , p>0.05, df = #2.
+```
 
+## Graphing Anova Analysis
+
+```{r}
+ggplot(licor_wanted_clean) + 
+  aes(x = treatment, y = log(mean_transp), fill = treatment) + 
+  geom_boxplot() 
+```
+
+# Regression
+
+```{r}
+transp.lm <- lm(mean_transp ~ mean_moist, data = moist_transp_table)
+transp.lm 
 ```
