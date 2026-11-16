@@ -261,3 +261,47 @@ ggplot(moist_transp_table) +
 ## Reporting results
 
 Mean soil moisture failed to predict mean transpiration rate, only explaining 0.087% of the variance (R\^2 = 0.00087) F(1,25) = 0.0218, p-value = 0.8839.
+
+# Scrapping LICOR
+
+## Using Soil Moisture and Height Data
+
+Does coast live oak height differ among treatment and soil moisture?
+
+```{r}
+alive_height <- Height_Data_Raw |> #filtering for alive seedlings only
+  filter(Dead_Alive == "Alive")
+
+alive_height <- alive_height |>  
+  mutate(Treatment = (as.factor(Treatment))) #making treatment a factor
+  
+levels(alive_height$Treatment) #Adult canopy, dead tree, natural recruits, OA?, open space
+
+alive_height <- alive_height |> #getting rid of OA
+  filter(Treatment != "OA", Treatment != "NR")
+```
+
+Graph
+
+```{r}
+height_plot <- ggplot(alive_height) + 
+  aes(x = Treatment, y = Seedling_Ht_cm, fill = Treatment) + 
+  geom_boxplot()
+
+plot(height_plot)
+```
+
+Analysis
+
+```{r}
+aov_model_height <- lm(log(Seedling_Ht_cm) ~ Treatment, data = alive_height)
+
+plot(aov_model_height) 
+
+shapiro.test(aov_model_height$residuals) #when not logged, p-value = 0.004
+
+bartlett.test(log(Seedling_Ht_cm) ~ Treatment, data = alive_height) #variance is equal among #all treatments, p-value = 0.1007
+
+anova(aov_model_height) #mean height does differ between microhabitat
+
+```
