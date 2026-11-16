@@ -477,7 +477,7 @@ t.test(shell_length_mm ~ site, data = CDM_TC_Sizes) #CDM and Treasure cove mean 
 For full credit, have well centered error bars and professionally labeled axes (they should not say "mean", they should say the variable name).
 
 ```{r}
-CDM_TC_Sizes |> 
+CDM_TC_plot <- CDM_TC_Sizes |> 
   group_by(site) |> 
     summarize(
       mean_shell_length = mean(shell_length_mm, na.rm = TRUE), 
@@ -496,7 +496,7 @@ CDM_TC_Sizes |>
   theme_light() #changing theme
 
   
-  
+  plot(CDM_TC_plot)
 
 ```
 
