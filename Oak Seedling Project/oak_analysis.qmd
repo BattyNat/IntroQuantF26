@@ -3,6 +3,8 @@ title: "oak_analysis"
 author: "Natalie Bonning"
 format: html
 editor: visual
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Report Summary
@@ -297,9 +299,18 @@ height_plot <- ggplot(alive_height_three_trtmnt) +
 
 print(height_plot)
 
-alive_height_three_trtmnt |> 
+alive_height_three_trtmnt |> #counting obs of each treatment
 count(Treatment)
 
+adult_canopy <- alive_height_three_trtmnt |> 
+  filter(Treatment == "AC") 
+
+adult_canopy$Seedling_Ht_cm <- as.numeric(adult_canopy$Seedling_Ht_cm)
+
+adult_canopy |> 
+  mean(Seedling_Ht_cm)
+
+?mean
 ```
 
 Analysis
@@ -307,7 +318,7 @@ Analysis
 ```{r}
 aov_model_height <- lm(log(Seedling_Ht_cm) ~ Treatment, data = alive_height_three_trtmnt)
 
-plot(aov_model_height) 
+plot(aov_model_height)
 
 shapiro.test(aov_model_height$residuals) #when not logged, p-value = 0.004
 
@@ -315,10 +326,4 @@ bartlett.test(log(Seedling_Ht_cm) ~ Treatment, data = alive_height) #variance is
 
 anova(aov_model_height) #mean height does differ between microhabitat
 
-tiff("aov_height.tiff", units = "in", width = 4.5, height = 5, res = 300) |> 
-print(height_plot) |> 
-dev.off()
-
-
-?tiff
 ```
