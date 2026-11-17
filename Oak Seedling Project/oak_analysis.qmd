@@ -310,7 +310,14 @@ adult_canopy$Seedling_Ht_cm <- as.numeric(adult_canopy$Seedling_Ht_cm)
 adult_canopy |> 
   mean(Seedling_Ht_cm)
 
-?mean
+mean_alive_height <- alive_height_three_trtmnt |> 
+  select(Treatment, Seedling_Ht_cm) |> 
+  group_by(Treatment) |> 
+  mutate(mean_height = mean(Seedling_Ht_cm)) |> 
+  select(!Seedling_Ht_cm) |> 
+  unique()
+
+knitr::kable(mean_alive_height)
 ```
 
 Analysis
