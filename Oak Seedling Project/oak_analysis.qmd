@@ -278,7 +278,7 @@ alive_height <- alive_height |>
 levels(alive_height$Treatment) #Adult canopy, dead tree, natural recruits, OA?, open space
 
 alive_height <- alive_height |> #getting rid of OA
-  filter(Treatment != "OA", Treatment != "NR")
+  filter(Treatment != "OA", )
 ```
 
 Graph
@@ -286,9 +286,12 @@ Graph
 ```{r}
 height_plot <- ggplot(alive_height) + 
   aes(x = Treatment, y = Seedling_Ht_cm, fill = Treatment) + 
-  geom_boxplot()
+  ylab(label = "Height (cm)") +
+  geom_boxplot() +
+  theme_classic() 
+  
 
-plot(height_plot)
+print(height_plot)
 ```
 
 Analysis
@@ -304,4 +307,10 @@ bartlett.test(log(Seedling_Ht_cm) ~ Treatment, data = alive_height) #variance is
 
 anova(aov_model_height) #mean height does differ between microhabitat
 
+tiff("aov_height.tiff", units = "in", width = 4.5, height = 5, res = 300) |> 
+print(height_plot) |> 
+dev.off()
+
+
+?tiff
 ```
