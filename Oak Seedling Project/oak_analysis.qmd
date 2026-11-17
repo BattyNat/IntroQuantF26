@@ -114,7 +114,7 @@ licor_wanted <- LICOR_Data_Raw |>
 
 glimpse(licor_wanted) #all variables are characters
 
-levels(licor_wanted$Treatment_NA_NA) #null value, want to see each level of treatment
+#levels(licor_wanted$Treatment_NA_NA) #null value, want to see each level of treatment
 
 
 #fixing levels = null values bc treatment is character, not a factor
@@ -149,7 +149,7 @@ licor_wanted_clean <- licor_wanted_clean |>
 moist_wanted <- Moist_Data_Raw |>
   select(VWC1_perc, VWC2_perc, VWC3_perc, Treatment, Date, Block)
 
-levels(moist_wanted$Treatment) #null values
+#levels(moist_wanted$Treatment) #null values
 
 #changing character variable trtment as factor to see levels of trtment
 moist_wanted <- moist_wanted |> 
