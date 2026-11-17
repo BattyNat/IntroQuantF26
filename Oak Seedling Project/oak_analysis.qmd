@@ -277,14 +277,18 @@ alive_height <- alive_height |>
   
 levels(alive_height$Treatment) #Adult canopy, dead tree, natural recruits, OA?, open space
 
-alive_height <- alive_height |> #getting rid of OA
-  filter(Treatment != "OA", )
+alive_height_three_trtmnt <- alive_height |> #getting rid of NR
+  filter(Treatment != "NR")
+
+levels(alive_height_three_trtmnt$Treatment)[levels(alive_height_three_trtmnt$Treatment) == "OA"] <- "OS" #rename OA to OS
+
+levels(alive_height_three_trtmnt$Treatment) #it worked yay!
 ```
 
 Graph
 
 ```{r}
-height_plot <- ggplot(alive_height) + 
+height_plot <- ggplot(alive_height_three_trtmnt) + 
   aes(x = Treatment, y = Seedling_Ht_cm, fill = Treatment) + 
   ylab(label = "Height (cm)") +
   geom_boxplot() +
@@ -292,18 +296,22 @@ height_plot <- ggplot(alive_height) +
   
 
 print(height_plot)
+
+alive_height_three_trtmnt |> 
+count(Treatment)
+
 ```
 
 Analysis
 
 ```{r}
-aov_model_height <- lm(log(Seedling_Ht_cm) ~ Treatment, data = alive_height)
+aov_model_height <- lm(log(Seedling_Ht_cm) ~ Treatment, data = alive_height_three_trtmnt)
 
 plot(aov_model_height) 
 
 shapiro.test(aov_model_height$residuals) #when not logged, p-value = 0.004
 
-bartlett.test(log(Seedling_Ht_cm) ~ Treatment, data = alive_height) #variance is equal among #all treatments, p-value = 0.1007
+bartlett.test(log(Seedling_Ht_cm) ~ Treatment, data = alive_height) #variance is not equal among #all treatments, p-value = 0.1007
 
 anova(aov_model_height) #mean height does differ between microhabitat
 
