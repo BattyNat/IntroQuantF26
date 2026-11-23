@@ -294,13 +294,14 @@ height_plot <- ggplot(alive_height_three_trtmnt) +
   aes(x = Treatment, y = Seedling_Ht_cm, fill = Treatment) + 
   ylab(label = "Height (cm)") +
   geom_boxplot() +
-  theme_classic() 
+  theme_classic() +
+  geom_jitter()
   
 
 print(height_plot)
 
 alive_height_three_trtmnt |> #counting obs of each treatment
-count(Treatment)
+count(Treatment) #sample sizes are relatively equal
 
 adult_canopy <- alive_height_three_trtmnt |> 
   filter(Treatment == "AC") 
@@ -333,4 +334,7 @@ bartlett.test(log(Seedling_Ht_cm) ~ Treatment, data = alive_height) #variance is
 
 anova(aov_model_height) #mean height does differ between microhabitat
 
+#which treatment is different?
+TukeyHSD(aov(log(Seedling_Ht_cm) ~ Treatment, data = alive_height_three_trtmnt))
+#open space differs!
 ```
