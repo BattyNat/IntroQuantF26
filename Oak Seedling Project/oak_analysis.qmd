@@ -43,6 +43,8 @@ library(readxl)
 You can add options to executable code like this
 
 ```{r}
+setwd("~/Documents/GitHub/IntroQuantF26/Oak Seedling Project")
+
 Height_Data_Raw <- 
   read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
              sheet = "Seedling Heights")
@@ -51,18 +53,18 @@ Moist_Data_Raw <-
   read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
              sheet = "Soil Moisture")
 
-SPAD_Data_Raw <- 
-  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
-             sheet = "SPAD", 
-             na = "NA")
+#SPAD_Data_Raw <- 
+#  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+    #         sheet = "SPAD", 
+     #        na = "NA")
 
-licor_wrong <- 
-  read_excel("Oak Data Entry MCRS Field Trip.xlsx",
-             sheet = "LICOR")
+#licor_wrong <- 
+#  read_excel("Oak Data Entry MCRS Field Trip.xlsx",
+       #      sheet = "LICOR")
 
-licor_wrong <- 
-  read_excel("Oak Data Entry MCRS Field Trip.xlsx",
-             sheet = "ALL_Licor_Ignore")
+#licor_wrong <- 
+ # read_excel("Oak Data Entry MCRS Field Trip.xlsx",
+        #     sheet = "ALL_Licor_Ignore")
 ```
 
 ## Importing LICOR objects
@@ -154,10 +156,12 @@ moist_wanted <- Moist_Data_Raw |>
 #changing character variable trtment as factor to see levels of trtment
 moist_wanted <- moist_wanted |> 
   mutate(treatment = (as.factor(Treatment))) |> 
-  select(treatment, Date, VWC1_perc, VWC2_perc, VWC3_perc, Block) |> #removing old treatment #colomn
-  rename(date = Date) #rename date to match with licor table
+  select(treatment, Date, VWC1_perc, VWC2_perc, VWC3_perc, Block) #removing old treatment #colomn
 
 levels(moist_wanted$treatment) #4 levels, AC, DT, NR, OS
+
+moist_wanted <- moist_wanted |> 
+  filter(treatment != "NR")  
 
 #moist_transp_table <- full_join(moist_wanted, licor_wanted_clean) #x date is datetimeUTC and y date #is character
 
@@ -279,19 +283,19 @@ alive_height <- alive_height |>
   
 levels(alive_height$Treatment) #Adult canopy, dead tree, natural recruits, OA?, open space
 
-alive_height_three_trtmnt <- alive_height |> #getting rid of NR
+alive_height <- alive_height |> #getting rid of NR
   filter(Treatment != "NR") |> 
-  select(Date, Block, Tag_Num, Treatment, Sapling_AB_etc, Seedling_Ht_cm)
+  select(Date, Block, Tag_Num, Treatment, Sapling_AB_etc, Seedling_Ht_cm, Dead_Alive)
 
-levels(alive_height_three_trtmnt$Treatment)[levels(alive_height_three_trtmnt$Treatment) == "OA"] <- "OS" #rename OA to OS
+levels(alive_height$Treatment)[levels(alive_height$Treatment) == "OA"] <- "OS" #rename OA to OS
 
-levels(alive_height_three_trtmnt$Treatment) #it worked yay!
+levels(alive_height$Treatment) #it worked yay!
 ```
 
 Graph
 
 ```{r}
-height_plot <- ggplot(alive_height_three_trtmnt) + 
+height_plot <- ggplot(alive_height) + 
   aes(x = Treatment, y = Seedling_Ht_cm, fill = Treatment) + 
   ylab(label = "Height (cm)") +
   geom_boxplot() +
@@ -301,31 +305,22 @@ height_plot <- ggplot(alive_height_three_trtmnt) +
 
 print(height_plot)
 
-alive_height_three_trtmnt |> #counting obs of each treatment
+alive_height |> #counting obs of each treatment
 count(Treatment) #sample sizes are relatively equal
 
-adult_canopy <- alive_height_three_trtmnt |> 
-  filter(Treatment == "AC") 
-
-adult_canopy$Seedling_Ht_cm <- as.numeric(adult_canopy$Seedling_Ht_cm)
-
-adult_canopy |> 
-  mean(Seedling_Ht_cm)
-
-mean_alive_height <- alive_height_three_trtmnt |> 
+mean_alive_height <- alive_height |> 
   select(Treatment, Seedling_Ht_cm) |> 
   group_by(Treatment) |> 
   mutate(mean_height = mean(Seedling_Ht_cm)) |> 
   select(!Seedling_Ht_cm) |> 
   unique()
 
-knitr::kable(mean_alive_height)
 ```
 
 Analysis
 
 ```{r}
-aov_model_height <- lm(log(Seedling_Ht_cm) ~ Treatment, data = alive_height_three_trtmnt)
+aov_model_height <- lm(log(Seedling_Ht_cm) ~ Treatment, data = alive_height)
 
 plot(aov_model_height)
 
@@ -345,8 +340,8 @@ Regression
 ```{r}
 
 #fixing y table date character variable, changing to datetime UTC
-moist_wanted$date <-  
-  as.Date(moist_wanted$date, format = "%Y-%m-%d", tz = "UTC")
+moist_wanted$Date <-  
+  as.Date(moist_wanted$Date, format = "%Y-%m-%d", tz = "UTC")
 
 
 #getting rid of NAs
@@ -355,34 +350,60 @@ moist_wanted <- moist_wanted |>
 
 
 moist_wanted <- moist_wanted |> 
-mutate(date = if_else(date == as.Date("2026-10-21"), #changed to correct date
+mutate(Date = if_else(Date == as.Date("2026-10-21"), #changed to correct date
                           as.Date("2026-10-15"), 
-                          date))
+                          Date))
 
+
+moist_wanted <- moist_wanted |> 
+  rename(Treatment = treatment) #renaming col 
 
 #creating colomn with mean soil moisture
 moist_wanted <- moist_wanted |> 
   mutate(across(c(VWC1_perc, VWC2_perc, VWC3_perc), as.numeric)) |> #converting chrtr to #numeric in order to add and get mean
   mutate(mean_moist = (rowSums(across(c(VWC1_perc, VWC2_perc, VWC3_perc))))/3) |> #calc mean
-  select(treatment, date, Block, mean_moist) 
+  select(Treatment, Date, Block, mean_moist) 
 
 
-moist_wanted <- moist_wanted |> 
-  rename(Treatment = treatment)
+moist_ht_df <- full_join(moist_wanted, alive_height, by = join_by("Block", "Treatment")) #joining height and moisture dfs  
 
-moist_ht_df <- full_join(moist_wanted, alive_height_three_trtmnt, by = "Block") #running code again
-
-
-#removing "NA" values  
-moist_transp_table <- moist_transp_table |>  
-  filter(VWC2_perc != "NA", VWC3_perc != "NA")  
-
-
-#dropping rest of NAs, should now only have complete soil moisture data and transpiration data
-moist_transp_table <- moist_transp_table |>  
+moist_ht_df <- moist_ht_df |> 
+  select(Treatment, Block, Seedling_Ht_cm, mean_moist, Date) |> 
   drop_na()
 
+moist_ht_bef <- moist_ht_df |> 
+  filter(Date.x == "2026-10-08") |> 
+  select(Date.x, Treatment, Block, mean_moist, Seedling_Ht_cm) |> 
+  drop_na()
+
+moist_ht_aft <- moist_ht_df |> 
+  filter(Date.x == "2026-10-15") |> 
+  select(Date.x, Treatment, Block, mean_moist, Seedling_Ht_cm) |> 
+  drop_na()
+
+moist_ht.lm <- lm(Seedling_Ht_cm ~ mean_moist, data = moist_ht_bef)
+moist_ht.lm
+summary(moist_ht.lm)
+
+moist_ht_aft.lm <- lm(Seedling_Ht_cm ~ mean_moist, data = moist_ht_aft)
+moist_ht_aft.lm
+summary(moist_ht_aft.lm)
+```
+
+Graph
+
+```{r}
+before_moisture <- ggplot(moist_ht_bef) + 
+  aes(x = mean_moist, y = Seedling_Ht_cm) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE)
+
+plot(before_moisture)
 
 
-moist_ht.lm <- lm(Seedling_Ht_cm ~ )
+after_moisture <- ggplot(moist_ht_aft) + 
+  aes(x = mean_moist, y = Seedling_Ht_cm) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE)
+plot(after_moisture)
 ```
