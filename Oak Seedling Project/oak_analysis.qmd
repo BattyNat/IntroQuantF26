@@ -68,79 +68,79 @@ licor_wrong <-
 ## Importing LICOR objects
 
 ```{r}
-LICOR_Data_Raw_NAMES <- 
-  read_excel("Oak Data Entry MCRS Field Trip.xlsx",              
-             sheet = "LICOR", 
-             n_max = 3, 
-             col_names = FALSE, 
-             col_types = "text") |> 
-  summarise(across(.fns = paste, collapse = "_")) |> #if we have two cells, put in #same name paste
-  unlist() |> 
-  unname()
+#LICOR_Data_Raw_NAMES <- 
+  #read_excel("Oak Data Entry MCRS Field Trip.xlsx",              
+      #       sheet = "LICOR", 
+       #      n_max = 3, 
+        #     col_names = FALSE, 
+         #    col_types = "text") |> 
+  #summarise(across(.fns = paste, collapse = "_")) |> #if we have two cells, put in #same name paste
+  #unlist() |> 
+  #unname()
 
-LICOR_Data_Raw <- 
-  read_excel("Oak Data Entry MCRS Field Trip.xlsx",  
-             sheet = "LICOR", 
-             skip = 3, 
-             col_names = LICOR_Data_Raw_NAMES,
-             col_types = "text")
+#LICOR_Data_Raw <- 
+ # read_excel("Oak Data Entry MCRS Field Trip.xlsx",  
+  #           sheet = "LICOR", 
+   #          skip = 3, 
+    #         col_names = LICOR_Data_Raw_NAMES,
+     #        col_types = "text")
 
 
-ALL_Licor_NAMES <- 
-  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
-             sheet = "ALL_Licor_Ignore", 
-             n_max = 3, 
-             col_names = FALSE, 
-             col_types = "text") |> 
-  summarise(across(.fns = paste, collapse = "_")) |> 
-  unlist() |> 
-  unname()
+#ALL_Licor_NAMES <- 
+#  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+ #            sheet = "ALL_Licor_Ignore", 
+  #           n_max = 3, 
+   #          col_names = FALSE, 
+    #         col_types = "text") |> 
+  #summarise(across(.fns = paste, collapse = "_")) |> 
+  #unlist() |> 
+  #unname()
 
-ALL_Licor <- 
-  read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
-             sheet = "ALL_Licor_Ignore", 
-             skip = 3, 
-             col_names = ALL_Licor_NAMES, 
-             col_types = "text")
+#ALL_Licor <- 
+ # read_excel("Oak Data Entry MCRS Field Trip.xlsx", 
+  #           sheet = "ALL_Licor_Ignore", 
+   #          skip = 3, 
+    #         col_names = ALL_Licor_NAMES, 
+     #        col_types = "text")
 
-LICOR_Data_Raw <- full_join(LICOR_Data_Raw, ALL_Licor)
+#LICOR_Data_Raw <- full_join(LICOR_Data_Raw, ALL_Licor)
 ```
 
 ## Data Cleaning
 
 ```{r}
-licor_wanted <- LICOR_Data_Raw |> 
-  select(SYS_Date_YYYYMMDD, `PORO_E_apparent_mmol+1m-2s-1`, Treatment_NA_NA, `USERDEF_Block Number_NA`, `USERDEF_Tag Number_NA`) #selecting for #date, transpiration, and treatment #colomns
+#licor_wanted <- LICOR_Data_Raw |> 
+ # select(SYS_Date_YYYYMMDD, `PORO_E_apparent_mmol+1m-2s-1`, Treatment_NA_NA, `USERDEF_Block Number_NA`, `USERDEF_Tag Number_NA`) #selecting for #date, transpiration, and treatment #colomns
 
-glimpse(licor_wanted) #all variables are characters
+#glimpse(licor_wanted) #all variables are characters
 
 #levels(licor_wanted$Treatment_NA_NA) #null value, want to see each level of treatment
 
 
 #fixing levels = null values bc treatment is character, not a factor
-licor_wanted_clean <- licor_wanted |>  
-  mutate(treatment = (as.factor(Treatment_NA_NA))) |> #switching to factor from character to #see levels
-  select(treatment, SYS_Date_YYYYMMDD, `PORO_E_apparent_mmol+1m-2s-1`, `USERDEF_Block Number_NA`, `USERDEF_Tag Number_NA`) |> #remove old date #colomn
-  rename(date = SYS_Date_YYYYMMDD, transpiration = `PORO_E_apparent_mmol+1m-2s-1`, Block = `USERDEF_Block Number_NA`, tag_number = `USERDEF_Tag Number_NA`) #rename #colomns to simpler #names
+#licor_wanted_clean <- licor_wanted |>  
+ # mutate(treatment = (as.factor(Treatment_NA_NA))) |> #switching to factor from character to #see levels
+  #select(treatment, SYS_Date_YYYYMMDD, `PORO_E_apparent_mmol+1m-2s-1`, `USERDEF_Block Number_NA`, `USERDEF_Tag Number_NA`) |> #remove old date #colomn
+  #rename(date = SYS_Date_YYYYMMDD, transpiration = `PORO_E_apparent_mmol+1m-2s-1`, Block = `USERDEF_Block Number_NA`, tag_number = `USERDEF_Tag Number_NA`) #rename #colomns to simpler #names
 
 
 #changing transpiration colomn to numeric
-licor_wanted_clean$transpiration <- as.numeric(licor_wanted_clean$transpiration)
+#licor_wanted_clean$transpiration <- as.numeric(licor_wanted_clean$transpiration)
 
-licor_wanted_clean <- licor_wanted_clean |> 
-  group_by(tag_number) |> 
-  mutate(mean_transp = mean(transpiration)) |>  #mean transpiration colomn added to df
-  select(!transpiration) |> 
-  unique() |> 
-  drop_na() #removing na rows
+#licor_wanted_clean <- licor_wanted_clean |> 
+ # group_by(tag_number) |> 
+  #mutate(mean_transp = mean(transpiration)) |>  #mean transpiration colomn added to df
+  #select(!transpiration) |> 
+  #unique() |> 
+  #drop_na() #removing na rows
 
 
-levels(licor_wanted_clean$treatment) #levels are ??, AC, DT, NR, OS
+#levels(licor_wanted_clean$treatment) #levels are ??, AC, DT, NR, OS
 
 
 #Removing unnecessary data
-licor_wanted_clean <- licor_wanted_clean |> 
-  filter(treatment != "??", treatment != "NR") #removing ?? data 
+#licor_wanted_clean <- licor_wanted_clean |> 
+ # filter(treatment != "??", treatment != "NR") #removing ?? data 
 
 ```
 
@@ -159,29 +159,29 @@ moist_wanted <- moist_wanted |>
 
 levels(moist_wanted$treatment) #4 levels, AC, DT, NR, OS
 
-moist_transp_table <- full_join(moist_wanted, licor_wanted_clean) #x date is datetimeUTC and y date #is character
+#moist_transp_table <- full_join(moist_wanted, licor_wanted_clean) #x date is datetimeUTC and y date #is character
 
 #fixing y table date character variable, changing to datetime UTC
-licor_wanted_clean$date <-  
-  as.Date(licor_wanted_clean$date, format = "%Y-%m-%d", tz = "UTC")
+#licor_wanted_clean$date <-  
+ # as.Date(licor_wanted_clean$date, format = "%Y-%m-%d", tz = "UTC")
 
-moist_transp_table <- full_join(moist_wanted, licor_wanted_clean) #running code again
+#moist_transp_table <- full_join(moist_wanted, licor_wanted_clean) #running code again
 
 
 #removing "NA" values  
-moist_transp_table <- moist_transp_table |>  
-  filter(VWC2_perc != "NA", VWC3_perc != "NA")  
+#moist_transp_table <- moist_transp_table |>  
+ # filter(VWC2_perc != "NA", VWC3_perc != "NA")  
 
 
 #dropping rest of NAs, should now only have complete soil moisture data and transpiration data
-moist_transp_table <- moist_transp_table |>  
-  drop_na()
+#moist_transp_table <- moist_transp_table |>  
+  #drop_na()
 
 #creating colomn with mean soil moisture
-moist_transp_table <- moist_transp_table |> 
-  mutate(across(c(VWC1_perc, VWC2_perc, VWC3_perc), as.numeric)) |> #converting chrtr to #numeric in order to add and get mean
-  mutate(mean_moist = (rowSums(across(c(VWC1_perc, VWC2_perc, VWC3_perc))))/3) |> #calc mean
-  select(treatment, date, Block, mean_moist, tag_number, mean_transp) 
+#moist_transp_table <- moist_transp_table |> 
+#  mutate(across(c(VWC1_perc, VWC2_perc, VWC3_perc), as.numeric)) |> #converting chrtr to #numeric in order to add and get mean
+ # mutate(mean_moist = (rowSums(across(c(VWC1_perc, VWC2_perc, VWC3_perc))))/3) |> #calc mean
+ # select(treatment, date, Block, mean_moist, tag_number, mean_transp) 
 
 ```
 
@@ -190,9 +190,9 @@ moist_transp_table <- moist_transp_table |>
 ## Creating a model
 
 ```{r}
-aov_model <- lm(log(mean_transp) ~ treatment, data = licor_wanted_clean)
+#aov_model <- lm(log(mean_transp) ~ treatment, data = licor_wanted_clean)
 
-plot(aov_model, which = 2) #need to log model
+#plot(aov_model, which = 2) #need to log model
 ```
 
 ## Normal Distribution Test
@@ -200,7 +200,7 @@ plot(aov_model, which = 2) #need to log model
 Shapiro-wilk test
 
 ```{r}
-shapiro.test(aov_model$residuals) #when not logged, p-value = 0.0005
+#shapiro.test(aov_model$residuals) #when not logged, p-value = 0.0005
 #must log in order to have normal distribution, when logged p-value = 0.5
 ```
 
@@ -209,7 +209,7 @@ shapiro.test(aov_model$residuals) #when not logged, p-value = 0.0005
 Bartlett test
 
 ```{r}
-bartlett.test(log(mean_transp) ~ treatment, data =licor_wanted_clean) #variance is equal among #all treatments, p-value = 0.4677
+#bartlett.test(log(mean_transp) ~ treatment, data =licor_wanted_clean) #variance is equal among #all treatments, p-value = 0.4677
 
 ```
 
@@ -219,19 +219,19 @@ Conducting a one way anova
 
 ```{r}
 
-anova(aov_model)
+#anova(aov_model)
 #the mean transpiration of coast live oaks does not differ between microhabitats , p>0.05, df = #2.
 ```
 
 ## Graphing Anova Analysis
 
 ```{r}
-ggplot(licor_wanted_clean) + 
-  aes(x = treatment, y = log(mean_transp), fill = treatment) + 
-  xlab(label = "Treatment") + 
-  ylab(label = "Mean Transpiration") + 
-  geom_boxplot() +
-  geom_jitter()
+#ggplot(licor_wanted_clean) + 
+ # aes(x = treatment, y = log(mean_transp), fill = treatment) + 
+ # xlab(label = "Treatment") + 
+ # ylab(label = "Mean Transpiration") + 
+ # geom_boxplot() +
+ # geom_jitter()
 
 ```
 
@@ -244,20 +244,20 @@ The mean transpiration of coast live oaks does not differ between microhabitat, 
 ## Running a linear model
 
 ```{r}
-transp.lm <- lm(mean_transp ~ mean_moist, data = moist_transp_table)
-transp.lm 
-summary(transp.lm) #R-squared very low, moisture does not explain transpiration
+#transp.lm <- lm(mean_transp ~ mean_moist, data = moist_transp_table)
+#transp.lm 
+#summary(transp.lm) #R-squared very low, moisture does not explain transpiration
 ```
 
 ## Graphing results
 
 ```{r}
-ggplot(moist_transp_table) + 
-  aes(mean_moist, mean_transp) + 
-  xlab(label = "Mean Moisture") + 
-  ylab(label = "Mean Transpiration") + 
-  geom_point() + 
-  geom_smooth(method = "lm", se = FALSE, linetype = "dashed")
+#ggplot(moist_transp_table) + 
+ # aes(mean_moist, mean_transp) + 
+ # xlab(label = "Mean Moisture") + 
+ # ylab(label = "Mean Transpiration") + 
+ # geom_point() + 
+#  geom_smooth(method = "lm", se = FALSE, linetype = "dashed")
 ```
 
 ## Reporting results
@@ -280,7 +280,8 @@ alive_height <- alive_height |>
 levels(alive_height$Treatment) #Adult canopy, dead tree, natural recruits, OA?, open space
 
 alive_height_three_trtmnt <- alive_height |> #getting rid of NR
-  filter(Treatment != "NR")
+  filter(Treatment != "NR") |> 
+  select(Date, Block, Tag_Num, Treatment, Sapling_AB_etc, Seedling_Ht_cm)
 
 levels(alive_height_three_trtmnt$Treatment)[levels(alive_height_three_trtmnt$Treatment) == "OA"] <- "OS" #rename OA to OS
 
@@ -337,4 +338,51 @@ anova(aov_model_height) #mean height does differ between microhabitat
 #which treatment is different?
 TukeyHSD(aov(log(Seedling_Ht_cm) ~ Treatment, data = alive_height_three_trtmnt))
 #open space differs!
+```
+
+Regression
+
+```{r}
+
+#fixing y table date character variable, changing to datetime UTC
+moist_wanted$date <-  
+  as.Date(moist_wanted$date, format = "%Y-%m-%d", tz = "UTC")
+
+
+#getting rid of NAs
+moist_wanted <- moist_wanted |>  
+  filter(VWC1_perc != "NA", VWC2_perc != "NA", VWC3_perc != "NA") 
+
+
+moist_wanted <- moist_wanted |> 
+mutate(date = if_else(date == as.Date("2026-10-21"), #changed to correct date
+                          as.Date("2026-10-15"), 
+                          date))
+
+
+#creating colomn with mean soil moisture
+moist_wanted <- moist_wanted |> 
+  mutate(across(c(VWC1_perc, VWC2_perc, VWC3_perc), as.numeric)) |> #converting chrtr to #numeric in order to add and get mean
+  mutate(mean_moist = (rowSums(across(c(VWC1_perc, VWC2_perc, VWC3_perc))))/3) |> #calc mean
+  select(treatment, date, Block, mean_moist) 
+
+
+moist_wanted <- moist_wanted |> 
+  rename(Treatment = treatment)
+
+moist_ht_df <- full_join(moist_wanted, alive_height_three_trtmnt, by = "Block") #running code again
+
+
+#removing "NA" values  
+moist_transp_table <- moist_transp_table |>  
+  filter(VWC2_perc != "NA", VWC3_perc != "NA")  
+
+
+#dropping rest of NAs, should now only have complete soil moisture data and transpiration data
+moist_transp_table <- moist_transp_table |>  
+  drop_na()
+
+
+
+moist_ht.lm <- lm(Seedling_Ht_cm ~ )
 ```
