@@ -300,7 +300,9 @@ height_plot <- ggplot(alive_height) +
   ylab(label = "Height (cm)") +
   geom_boxplot() +
   theme_classic() +
-  geom_jitter()
+  geom_jitter() + 
+  annotate("text", x = 3.5, y = 55, label = "A.") 
+
   
 
 print(height_plot)
@@ -396,7 +398,10 @@ Graph
 before_moisture <- ggplot(moist_ht_bef) + 
   aes(x = mean_moist, y = Seedling_Ht_cm) +
   geom_point() + 
-  geom_smooth(method = "lm", se = FALSE)
+  geom_smooth(method = "lm", se = FALSE) + 
+  xlab(label = "Mean Moisture") + 
+  ylab(label = "Seedling Height (cm)") + 
+  annotate("text", x = 3, y = 55, label = "B.") 
 
 plot(before_moisture)
 
@@ -404,6 +409,12 @@ plot(before_moisture)
 after_moisture <- ggplot(moist_ht_aft) + 
   aes(x = mean_moist, y = Seedling_Ht_cm) +
   geom_point() + 
-  geom_smooth(method = "lm", se = FALSE)
-plot(after_moisture)
+  geom_smooth(method = "lm", se = FALSE) + 
+  xlab(label = "Mean Moisture") + 
+  ylab(label = "Seedling Height (cm)") + 
+  annotate("text", x = 15, y = 55, label = "C.")
+
+plot(after_moisture) 
+
+?annotate
 ```
